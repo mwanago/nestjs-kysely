@@ -15,7 +15,7 @@ config();
 const configService = new ConfigService();
 
 async function migrateToLatest() {
-  const db = new Kysely({
+  const database = new Kysely({
     dialect: new PostgresDialect({
       pool: new Pool({
         host: configService.get('POSTGRES_HOST'),
@@ -28,7 +28,7 @@ async function migrateToLatest() {
   });
 
   const migrator = new Migrator({
-    db,
+    db: database,
     provider: new FileMigrationProvider({
       fs,
       path,
@@ -38,11 +38,15 @@ async function migrateToLatest() {
 
   const { error, results } = await migrator.migrateToLatest();
 
-  results?.forEach((it) => {
-    if (it.status === 'Success') {
-      console.log(`migration "${it.migrationName}" was executed successfully`);
-    } else if (it.status === 'Error') {
-      console.error(`failed to execute migration "${it.migrationName}"`);
+  results?.forEach((migrationResult) => {
+    if (migrationResult.status === 'Success') {
+      console.log(
+        `migration "${migrationResult.migrationName}" was executed successfully`,
+      );
+    } else if (migrationResult.status === 'Error') {
+      console.error(
+        `failed to execute migration "${migrationResult.migrationName}"`,
+      );
     }
   });
 
@@ -52,7 +56,7 @@ async function migrateToLatest() {
     process.exit(1);
   }
 
-  await db.destroy();
+  await database.destroy();
 }
 
 migrateToLatest();
