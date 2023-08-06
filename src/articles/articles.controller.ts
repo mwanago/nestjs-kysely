@@ -2,17 +2,24 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Get,
+  Param,
   UseInterceptors,
 } from '@nestjs/common';
-import { Database } from '../database/database';
+import { ArticlesRepository } from './articles.repository';
+import FindOneParams from '../utils/findOneParams';
 
 @Controller('articles')
 @UseInterceptors(ClassSerializerInterceptor)
 export class ArticlesController {
-  constructor(private readonly database: Database) {}
+  constructor(private readonly articlesRepository: ArticlesRepository) {}
 
   @Get()
-  async getCategories() {
-    return this.database.selectFrom('articles').selectAll().execute();
+  async getAll() {
+    return this.articlesRepository.getAll();
+  }
+
+  @Get(':id')
+  async getById(@Param() { id }: FindOneParams) {
+    return this.articlesRepository.getById(id);
   }
 }
