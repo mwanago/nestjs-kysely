@@ -1,29 +1,29 @@
 import { Controller, Get, Param, Post, Body, Put } from '@nestjs/common';
-import { ArticlesRepository } from './articles.repository';
 import FindOneParams from '../utils/findOneParams';
 import ArticleDto from './dto/article.dto';
+import { ArticlesService } from './articles.service';
 
 @Controller('articles')
 export class ArticlesController {
-  constructor(private readonly articlesRepository: ArticlesRepository) {}
+  constructor(private readonly articlesService: ArticlesService) {}
 
   @Get()
   getAll() {
-    return this.articlesRepository.getAll();
+    return this.articlesService.getAll();
   }
 
   @Get(':id')
   getById(@Param() { id }: FindOneParams) {
-    return this.articlesRepository.getById(id);
+    return this.articlesService.getById(id);
   }
 
   @Post()
   create(@Body() data: ArticleDto) {
-    return this.articlesRepository.create(data);
+    return this.articlesService.create(data);
   }
 
   @Put(':id')
   update(@Param() { id }: FindOneParams, @Body() data: ArticleDto) {
-    return this.articlesRepository.update(id, data);
+    return this.articlesService.update(id, data);
   }
 }
