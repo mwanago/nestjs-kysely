@@ -5,4 +5,5 @@ export interface UsersTable {
   email: string;
   name: string;
   password: string;
+  address_id: number | null;
 }

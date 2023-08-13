@@ -14,8 +14,8 @@ import { Response } from 'express';
 import { AuthenticationService } from './authentication.service';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import JwtAuthenticationGuard from './jwt-authentication.guard';
-import { SignUpDto } from './dto/signUp.dto';
 import { RequestWithUser } from './requestWithUser.interface';
+import { SignUpDto } from './dto/signUp.dto';
 
 @Controller('authentication')
 @UseInterceptors(ClassSerializerInterceptor)

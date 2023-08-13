@@ -27,6 +27,9 @@ export class UsersService {
 
   async create(user: CreateUserDto) {
     try {
+      if (user.address) {
+        return await this.usersRepository.createWithAddress(user);
+      }
       return await this.usersRepository.create(user);
     } catch (error) {
       if (isRecord(error) && error.code === PostgresErrorCode.UniqueViolation) {

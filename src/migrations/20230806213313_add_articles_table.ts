@@ -10,5 +10,5 @@ export async function up(database: Kysely<unknown>): Promise<void> {
 }
 
 export async function down(database: Kysely<unknown>): Promise<void> {
-  await database.schema.dropTable('articles');
+  await database.schema.dropTable('articles').execute();
 }
