@@ -11,7 +11,17 @@ export class UsersRepository {
     const databaseResponse = await this.database
       .selectFrom('users')
       .where('email', '=', email)
-      .selectAll()
+      .leftJoin('addresses', 'addresses.id', 'users.address_id')
+      .select([
+        'users.id as id',
+        'users.email as email',
+        'users.name as name',
+        'users.password as password',
+        'addresses.id as address_id',
+        'addresses.city as address_city',
+        'addresses.street as address_street',
+        'addresses.country as address_country',
+      ])
       .executeTakeFirst();
 
     if (databaseResponse) {
@@ -22,8 +32,18 @@ export class UsersRepository {
   async getById(id: number) {
     const databaseResponse = await this.database
       .selectFrom('users')
-      .where('id', '=', id)
-      .selectAll()
+      .where('users.id', '=', id)
+      .leftJoin('addresses', 'addresses.id', 'users.address_id')
+      .select([
+        'users.id as id',
+        'users.email as email',
+        'users.name as name',
+        'users.password as password',
+        'addresses.id as address_id',
+        'addresses.city as address_city',
+        'addresses.street as address_street',
+        'addresses.country as address_country',
+      ])
       .executeTakeFirst();
 
     if (databaseResponse) {
