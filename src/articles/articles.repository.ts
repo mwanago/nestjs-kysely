@@ -35,7 +35,7 @@ export class ArticlesRepository {
         article_content: data.content,
       })
       .returningAll()
-      .executeTakeFirst();
+      .executeTakeFirstOrThrow();
 
     return new Article(databaseResponse);
   }
