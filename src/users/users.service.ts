@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UsersRepository } from './users.repository';
 import { isRecord } from '../utils/isRecord';
 import { PostgresErrorCode } from '../database/postgresErrorCode.enum';
-import UserAlreadyExistsException from './exceptions/userAlreadyExists.exception';
+import { UserAlreadyExistsException } from './exceptions/userAlreadyExists.exception';
 
 @Injectable()
 export class UsersService {
@@ -31,7 +31,7 @@ export class UsersService {
         return await this.usersRepository.createWithAddress(user);
       }
       return await this.usersRepository.create(user);
-    } catch (error) {
+    } catch (error: unknown) {
       if (isRecord(error) && error.code === PostgresErrorCode.UniqueViolation) {
         throw new UserAlreadyExistsException(user.email);
       }

@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { SignUpDto } from './dto/signUp.dto';
 import { TokenPayload } from './tokenPayload.interface';
-import UserAlreadyExistsException from '../users/exceptions/userAlreadyExists.exception';
+import { UserAlreadyExistsException } from '../users/exceptions/userAlreadyExists.exception';
 
 @Injectable()
 export class AuthenticationService {

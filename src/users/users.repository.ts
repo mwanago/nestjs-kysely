@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { User } from './user.model';
 import { CreateUserDto } from './dto/createUser.dto';
 import { Database } from '../database/database';
-import { expressionBuilder } from 'kysely';
 
 @Injectable()
 export class UsersRepository {
