@@ -33,4 +33,14 @@ export class ArticlesService {
 
     return article;
   }
+
+  async delete(id: number) {
+    const article = await this.articlesRepository.delete(id);
+
+    if (!article) {
+      throw new NotFoundException();
+    }
+
+    return article;
+  }
 }

@@ -55,4 +55,16 @@ export class ArticlesRepository {
       return new Article(databaseResponse);
     }
   }
+
+  async delete(id: number) {
+    const databaseResponse = await this.database
+      .deleteFrom('articles')
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirst();
+
+    if (databaseResponse) {
+      return new Article(databaseResponse);
+    }
+  }
 }
