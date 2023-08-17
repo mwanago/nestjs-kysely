@@ -1,14 +1,14 @@
 import { config } from 'dotenv';
 import * as bcrypt from 'bcrypt';
-import { Database } from '../database/database';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariables } from '../types/environmentVariables';
+import { Migration } from 'kysely';
 
 config();
 
 const configService = new ConfigService<EnvironmentVariables>();
 
-export async function up(database: Database): Promise<void> {
+export const up: Migration['up'] = async (database) => {
   const email = configService.get('ADMIN_EMAIL');
   const password = configService.get('ADMIN_PASSWORD');
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -21,10 +21,10 @@ export async function up(database: Database): Promise<void> {
       name: 'Admin',
     })
     .execute();
-}
+};
 
-export async function down(database: Database): Promise<void> {
+export const down: Migration['up'] = async (database) => {
   const email = configService.get('ADMIN_EMAIL');
 
   await database.deleteFrom('users').where('email', '=', email).execute();
-}
+};
