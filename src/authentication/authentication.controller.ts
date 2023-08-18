@@ -13,7 +13,7 @@ import {
 import { Response } from 'express';
 import { AuthenticationService } from './authentication.service';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
-import JwtAuthenticationGuard from './jwt-authentication.guard';
+import { JwtAuthenticationGuard } from './jwt-authentication.guard';
 import { RequestWithUser } from './requestWithUser.interface';
 import { SignUpDto } from './dto/signUp.dto';
 

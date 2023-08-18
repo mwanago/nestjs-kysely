@@ -1,7 +1,7 @@
 import { Database } from '../database/database';
 import { Article } from './article.model';
 import { Injectable } from '@nestjs/common';
-import ArticleDto from './dto/article.dto';
+import { ArticleDto } from './dto/article.dto';
 
 @Injectable()
 export class ArticlesRepository {
@@ -25,6 +25,16 @@ export class ArticlesRepository {
     if (databaseResponse) {
       return new Article(databaseResponse);
     }
+  }
+
+  async getByAuthorId(authorId: number) {
+    const databaseResponse = await this.database
+      .selectFrom('articles')
+      .where('author_id', '=', authorId)
+      .selectAll()
+      .execute();
+
+    return databaseResponse.map((articleData) => new Article(articleData));
   }
 
   async create(data: ArticleDto, authorId: number) {

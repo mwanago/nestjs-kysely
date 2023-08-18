@@ -8,20 +8,22 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
-import FindOneParams from '../utils/findOneParams';
-import ArticleDto from './dto/article.dto';
+import { FindOneParams } from '../utils/findOneParams';
+import { ArticleDto } from './dto/article.dto';
 import { ArticlesService } from './articles.service';
-import JwtAuthenticationGuard from '../authentication/jwt-authentication.guard';
+import { JwtAuthenticationGuard } from '../authentication/jwt-authentication.guard';
 import { RequestWithUser } from '../authentication/requestWithUser.interface';
+import { GetArticlesByAuthorQuery } from './getArticlesByAuthorQuery';
 
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
   @Get()
-  getAll() {
-    return this.articlesService.getAll();
+  getAll(@Query() { authorId }: GetArticlesByAuthorQuery) {
+    return this.articlesService.getAll(authorId);
   }
 
   @Get(':id')

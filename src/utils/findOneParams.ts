@@ -1,7 +1,7 @@
 import { IsNumber } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-class FindOneParams {
+export class FindOneParams {
   @IsNumber()
   @Transform(({ value }) => Number(value))
   id: number;

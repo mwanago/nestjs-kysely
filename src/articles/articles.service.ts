@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import ArticleDto from './dto/article.dto';
+import { ArticleDto } from './dto/article.dto';
 import { ArticlesRepository } from './articles.repository';
 
 @Injectable()
 export class ArticlesService {
   constructor(private readonly articlesRepository: ArticlesRepository) {}
 
-  getAll() {
+  getAll(authorId?: number) {
+    if (authorId) {
+      return this.articlesRepository.getByAuthorId(authorId);
+    }
     return this.articlesRepository.getAll();
   }
 
