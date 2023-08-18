@@ -1,4 +1,4 @@
-interface ArticleModelData {
+export interface ArticleModelData {
   id: number;
   title: string;
   article_content: string;

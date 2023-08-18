@@ -2,6 +2,7 @@ import { Database } from '../database/database';
 import { Article } from './article.model';
 import { Injectable } from '@nestjs/common';
 import { ArticleDto } from './dto/article.dto';
+import { ArticleWithAuthorModel } from './articleWithAuthor.model';
 
 @Injectable()
 export class ArticlesRepository {
@@ -24,6 +25,33 @@ export class ArticlesRepository {
 
     if (databaseResponse) {
       return new Article(databaseResponse);
+    }
+  }
+
+  async getWithAuthor(id: number) {
+    const databaseResponse = await this.database
+      .selectFrom('articles')
+      .where('articles.id', '=', id)
+      .innerJoin('users', 'users.id', 'articles.author_id')
+      .leftJoin('addresses', 'addresses.id', 'users.address_id')
+      .select([
+        'articles.id as id',
+        'articles.article_content as article_content',
+        'articles.title as title',
+        'articles.author_id as author_id',
+        'users.id as user_id',
+        'users.email as user_email',
+        'users.name as user_name',
+        'users.password as user_password',
+        'addresses.id as address_id',
+        'addresses.city as address_city',
+        'addresses.street as address_street',
+        'addresses.country as address_country',
+      ])
+      .executeTakeFirst();
+
+    if (databaseResponse) {
+      return new ArticleWithAuthorModel(databaseResponse);
     }
   }
 

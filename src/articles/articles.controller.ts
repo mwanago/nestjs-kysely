@@ -9,6 +9,8 @@ import {
   UseGuards,
   Req,
   Query,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { FindOneParams } from '../utils/findOneParams';
 import { ArticleDto } from './dto/article.dto';
@@ -18,6 +20,7 @@ import { RequestWithUser } from '../authentication/requestWithUser.interface';
 import { GetArticlesByAuthorQuery } from './getArticlesByAuthorQuery';
 
 @Controller('articles')
+@UseInterceptors(ClassSerializerInterceptor)
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
