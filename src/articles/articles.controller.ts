@@ -6,10 +6,14 @@ import {
   Body,
   Put,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import FindOneParams from '../utils/findOneParams';
 import ArticleDto from './dto/article.dto';
 import { ArticlesService } from './articles.service';
+import JwtAuthenticationGuard from '../authentication/jwt-authentication.guard';
+import { RequestWithUser } from '../authentication/requestWithUser.interface';
 
 @Controller('articles')
 export class ArticlesController {
@@ -26,16 +30,19 @@ export class ArticlesController {
   }
 
   @Post()
-  create(@Body() data: ArticleDto) {
-    return this.articlesService.create(data);
+  @UseGuards(JwtAuthenticationGuard)
+  create(@Body() data: ArticleDto, @Req() request: RequestWithUser) {
+    return this.articlesService.create(data, request.user.id);
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthenticationGuard)
   update(@Param() { id }: FindOneParams, @Body() data: ArticleDto) {
     return this.articlesService.update(id, data);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthenticationGuard)
   async delete(@Param() { id }: FindOneParams) {
     await this.articlesService.delete(id);
   }

@@ -27,12 +27,13 @@ export class ArticlesRepository {
     }
   }
 
-  async create(data: ArticleDto) {
+  async create(data: ArticleDto, authorId: number) {
     const databaseResponse = await this.database
       .insertInto('articles')
       .values({
         title: data.title,
         article_content: data.content,
+        author_id: authorId,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

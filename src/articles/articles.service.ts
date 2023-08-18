@@ -20,8 +20,8 @@ export class ArticlesService {
     return article;
   }
 
-  async create(data: ArticleDto) {
-    return this.articlesRepository.create(data);
+  async create(data: ArticleDto, authorId: number) {
+    return this.articlesRepository.create(data, authorId);
   }
 
   async update(id: number, data: ArticleDto) {

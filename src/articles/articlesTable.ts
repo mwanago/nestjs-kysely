@@ -4,4 +4,5 @@ export interface ArticlesTable {
   id: Generated<number>;
   title: string;
   article_content: string;
+  author_id: number;
 }
