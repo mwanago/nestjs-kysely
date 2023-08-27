@@ -34,7 +34,7 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.3.1",
     "joi": "^17.9.2",
-    "kysely": "^0.26.1",
+    "kysely": "^0.26.3",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "pg": "^8.11.2",
