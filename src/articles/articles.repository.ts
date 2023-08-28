@@ -3,6 +3,8 @@ import { Article } from './article.model';
 import { Injectable } from '@nestjs/common';
 import { ArticleDto } from './dto/article.dto';
 import { ArticleWithAuthorModel } from './articleWithAuthor.model';
+import { expressionBuilder, sql } from 'kysely';
+import { ArticleWithCategoryIds } from './articleWithCategoryIds';
 
 @Injectable()
 export class ArticlesRepository {
@@ -77,6 +79,44 @@ export class ArticlesRepository {
       .executeTakeFirstOrThrow();
 
     return new Article(databaseResponse);
+  }
+
+  async createWithCategories(data: ArticleDto, authorId: number) {
+    const databaseResponse = await this.database
+      .with('created_article', (database) => {
+        return database
+          .insertInto('articles')
+          .values({
+            title: data.title,
+            article_content: data.content,
+            author_id: authorId,
+          })
+          .returningAll();
+      })
+      .with('created_relationships', (database) => {
+        return database
+          .insertInto('categories_articles')
+          .columns(['article_id', 'category_id'])
+          .expression((expressionBuilder) => {
+            return expressionBuilder
+              .selectFrom('created_article')
+              .select([
+                'created_article.id as article_id',
+                sql`unnest(${data.categoryIds}::int[])`.as('category_id'),
+              ]);
+          });
+      })
+      .selectFrom('created_article')
+      .select((expressionBuilder) => [
+        'id',
+        'title',
+        'article_content',
+        'author_id',
+        expressionBuilder.val(data.categoryIds).as('category_ids'),
+      ])
+      .executeTakeFirstOrThrow();
+
+    return new ArticleWithCategoryIds(databaseResponse);
   }
 
   async update(id: number, data: ArticleDto) {

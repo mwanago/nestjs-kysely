@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 
 export class ArticleDto {
   @IsString()
@@ -8,4 +8,8 @@ export class ArticleDto {
   @IsString()
   @IsNotEmpty()
   content: string;
+
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  categoryIds?: number[];
 }

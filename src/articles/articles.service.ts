@@ -24,6 +24,9 @@ export class ArticlesService {
   }
 
   async create(data: ArticleDto, authorId: number) {
+    if (data.categoryIds?.length) {
+      return this.articlesRepository.createWithCategories(data, authorId);
+    }
     return this.articlesRepository.create(data, authorId);
   }
 
