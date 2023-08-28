@@ -2,6 +2,7 @@ import { Database } from '../database/database';
 import { Injectable } from '@nestjs/common';
 import { Category } from './category.model';
 import { CategoryDto } from './dto/category.dto';
+import CategoryWithArticles from './categoryWithArticles.model';
 
 @Injectable()
 export class CategoriesRepository {
@@ -25,6 +26,35 @@ export class CategoriesRepository {
     if (databaseResponse) {
       return new Category(databaseResponse);
     }
+  }
+
+  async getWithArticles(categoryId: number) {
+    const categoryResponse = await this.database
+      .selectFrom('categories')
+      .where('id', '=', categoryId)
+      .selectAll()
+      .executeTakeFirst();
+
+    if (!categoryResponse) {
+      return;
+    }
+
+    const articlesResponse = await this.database
+      .selectFrom('categories_articles')
+      .innerJoin('articles', 'articles.id', 'categories_articles.article_id')
+      .where('category_id', '=', categoryId)
+      .select([
+        'articles.id as id',
+        'articles.title as title',
+        'articles.article_content as article_content',
+        'articles.author_id as author_id',
+      ])
+      .execute();
+
+    return new CategoryWithArticles({
+      ...categoryResponse,
+      articles: articlesResponse,
+    });
   }
 
   async create(data: CategoryDto) {

@@ -11,7 +11,7 @@ export class CategoriesService {
   }
 
   async getById(id: number) {
-    const category = await this.categoriesRepository.getById(id);
+    const category = await this.categoriesRepository.getWithArticles(id);
 
     if (!category) {
       throw new NotFoundException();
