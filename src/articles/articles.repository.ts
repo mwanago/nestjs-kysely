@@ -107,16 +107,13 @@ export class ArticlesRepository {
           });
       })
       .selectFrom('created_article')
-      .select((expressionBuilder) => [
-        'id',
-        'title',
-        'article_content',
-        'author_id',
-        expressionBuilder.val(data.categoryIds).as('category_ids'),
-      ])
+      .select(['id', 'title', 'article_content', 'author_id'])
       .executeTakeFirstOrThrow();
 
-    return new ArticleWithCategoryIds(databaseResponse);
+    return new ArticleWithCategoryIds({
+      ...databaseResponse,
+      category_ids: data.categoryIds,
+    });
   }
 
   async update(id: number, data: ArticleDto) {
