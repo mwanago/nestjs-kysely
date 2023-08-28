@@ -3,8 +3,8 @@ import { Article } from './article.model';
 import { Injectable } from '@nestjs/common';
 import { ArticleDto } from './dto/article.dto';
 import { ArticleWithAuthorModel } from './articleWithAuthor.model';
-import { expressionBuilder, sql } from 'kysely';
-import { ArticleWithCategoryIds } from './articleWithCategoryIds';
+import { sql } from 'kysely';
+import { ArticleWithCategoryIds } from './articleWithCategoryIds.model';
 
 @Injectable()
 export class ArticlesRepository {
