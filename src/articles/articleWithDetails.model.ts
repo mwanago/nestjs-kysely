@@ -2,7 +2,7 @@ import { Article, ArticleModelData } from './article.model';
 import { User } from '../users/user.model';
 import { Type } from 'class-transformer';
 
-interface ArticleWithAuthorModelData extends ArticleModelData {
+interface ArticleWithDetailsModelData extends ArticleModelData {
   user_id: number;
   user_email: string;
   user_name: string;
@@ -11,11 +11,13 @@ interface ArticleWithAuthorModelData extends ArticleModelData {
   address_street: string | null;
   address_city: string | null;
   address_country: string | null;
+  category_ids: number[] | null;
 }
-export class ArticleWithAuthorModel extends Article {
+export class ArticleWithDetailsModel extends Article {
   @Type(() => User)
   author: User;
-  constructor(articleData: ArticleWithAuthorModelData) {
+  categoryIds: number[];
+  constructor(articleData: ArticleWithDetailsModelData) {
     super(articleData);
     this.author = new User({
       id: articleData.user_id,
@@ -27,5 +29,6 @@ export class ArticleWithAuthorModel extends Article {
       address_street: articleData.address_street,
       address_id: articleData.address_id,
     });
+    this.categoryIds = articleData.category_ids ?? [];
   }
 }

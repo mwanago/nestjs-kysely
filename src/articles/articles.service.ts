@@ -14,7 +14,7 @@ export class ArticlesService {
   }
 
   async getById(id: number) {
-    const article = await this.articlesRepository.getWithAuthor(id);
+    const article = await this.articlesRepository.getWithDetails(id);
 
     if (!article) {
       throw new NotFoundException();

@@ -2,9 +2,9 @@ import { Database } from '../database/database';
 import { Article } from './article.model';
 import { Injectable } from '@nestjs/common';
 import { ArticleDto } from './dto/article.dto';
-import { ArticleWithAuthorModel } from './articleWithAuthor.model';
 import { sql } from 'kysely';
 import { ArticleWithCategoryIds } from './articleWithCategoryIds.model';
+import { ArticleWithDetailsModel } from './articleWithDetails.model';
 
 @Injectable()
 export class ArticlesRepository {
@@ -30,8 +30,8 @@ export class ArticlesRepository {
     }
   }
 
-  async getWithAuthor(id: number) {
-    const databaseResponse = await this.database
+  async getWithDetails(id: number) {
+    const articleResponse = await this.database
       .selectFrom('articles')
       .where('articles.id', '=', id)
       .innerJoin('users', 'users.id', 'articles.author_id')
@@ -52,8 +52,21 @@ export class ArticlesRepository {
       ])
       .executeTakeFirst();
 
-    if (databaseResponse) {
-      return new ArticleWithAuthorModel(databaseResponse);
+    const categoryIdsResponse = await this.database
+      .selectFrom('categories_articles')
+      .where('article_id', '=', id)
+      .selectAll()
+      .execute();
+
+    const categoryIds = categoryIdsResponse.map(
+      (response) => response.category_id,
+    );
+
+    if (articleResponse) {
+      return new ArticleWithDetailsModel({
+        ...articleResponse,
+        category_ids: categoryIds,
+      });
     }
   }
 
