@@ -85,14 +85,24 @@ export class CategoriesRepository {
   }
 
   async delete(id: number) {
-    const databaseResponse = await this.database
-      .deleteFrom('categories')
-      .where('id', '=', id)
-      .returningAll()
-      .executeTakeFirst();
+    try {
+      const databaseResponse = await this.database
+        .transaction()
+        .execute(async (transactionBuilder) => {
+          await transactionBuilder
+            .deleteFrom('categories_articles')
+            .where('category_id', '=', id)
+            .execute();
 
-    if (databaseResponse) {
+          return await transactionBuilder
+            .deleteFrom('categories')
+            .where('id', '=', id)
+            .returningAll()
+            .executeTakeFirstOrThrow();
+        });
       return new Category(databaseResponse);
+    } catch {
+      return null;
     }
   }
 }
