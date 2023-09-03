@@ -1,10 +1,17 @@
-import { Database } from '../database/database';
+import { Database, Tables } from '../database/database';
 import { Article } from './article.model';
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ArticleDto } from './dto/article.dto';
-import { sql } from 'kysely';
+import { sql, Transaction } from 'kysely';
 import { ArticleWithCategoryIds } from './articleWithCategoryIds.model';
 import { ArticleWithDetailsModel } from './articleWithDetails.model';
+import { isRecord } from '../utils/isRecord';
+import { PostgresErrorCode } from '../database/postgresErrorCode.enum';
+import { getDifferenceBetweenArrays } from '../utils/getDifferenceBetweenArrays';
 
 @Injectable()
 export class ArticlesRepository {
@@ -131,18 +138,131 @@ export class ArticlesRepository {
 
   async update(id: number, data: ArticleDto) {
     const databaseResponse = await this.database
-      .updateTable('articles')
-      .set({
-        title: data.title,
-        article_content: data.content,
-      })
-      .where('id', '=', id)
-      .returningAll()
-      .executeTakeFirst();
+      .transaction()
+      .execute(async (transaction) => {
+        const updateArticleResponse = await transaction
+          .updateTable('articles')
+          .set({
+            title: data.title,
+            article_content: data.content,
+          })
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst();
 
-    if (databaseResponse) {
-      return new Article(databaseResponse);
+        if (!updateArticleResponse) {
+          throw new NotFoundException();
+        }
+
+        const newCategoryIds = data.categoryIds || [];
+
+        const categoryIds = await this.updateCategoryIds(
+          transaction,
+          id,
+          newCategoryIds,
+        );
+
+        return {
+          ...updateArticleResponse,
+          category_ids: categoryIds,
+        };
+      });
+
+    return new ArticleWithCategoryIds(databaseResponse);
+  }
+
+  private async addCategoriesToArticle(
+    transaction: Transaction<Tables>,
+    articleId: number,
+    categoryIdsToAdd: number[],
+  ) {
+    if (!categoryIdsToAdd.length) {
+      return;
     }
+    try {
+      await transaction
+        .insertInto('categories_articles')
+        .values(
+          categoryIdsToAdd.map((categoryId) => {
+            return {
+              article_id: articleId,
+              category_id: categoryId,
+            };
+          }),
+        )
+        .execute();
+    } catch (error) {
+      if (
+        isRecord(error) &&
+        error.code === PostgresErrorCode.ForeignKeyViolation
+      ) {
+        throw new BadRequestException('Category not found');
+      }
+      throw error;
+    }
+  }
+
+  private async removeCategoriesFromArticle(
+    transaction: Transaction<Tables>,
+    articleId: number,
+    categoryIdsToRemove: number[],
+  ) {
+    if (!categoryIdsToRemove.length) {
+      return;
+    }
+    return transaction
+      .deleteFrom('categories_articles')
+      .where((expressionBuilder) => {
+        return expressionBuilder('article_id', '=', articleId).and(
+          'category_id',
+          '=',
+          sql`ANY(${categoryIdsToRemove}::int[])`,
+        );
+      })
+      .execute();
+  }
+
+  private async getCategoryIdsRelatedToArticle(
+    transaction: Transaction<Tables>,
+    articleId: number,
+  ): Promise<number[]> {
+    const categoryIdsResponse = await transaction
+      .selectFrom('categories_articles')
+      .where('article_id', '=', articleId)
+      .selectAll()
+      .execute();
+
+    return categoryIdsResponse.map((response) => response.category_id);
+  }
+
+  private async updateCategoryIds(
+    transaction: Transaction<Tables>,
+    articleId: number,
+    newCategoryIds: number[],
+  ) {
+    const existingCategoryIds = await this.getCategoryIdsRelatedToArticle(
+      transaction,
+      articleId,
+    );
+
+    const categoryIdsToRemove = getDifferenceBetweenArrays(
+      existingCategoryIds,
+      newCategoryIds,
+    );
+
+    const categoryIdsToAdd = getDifferenceBetweenArrays(
+      newCategoryIds,
+      existingCategoryIds,
+    );
+
+    await this.removeCategoriesFromArticle(
+      transaction,
+      articleId,
+      categoryIdsToRemove,
+    );
+    await this.addCategoriesToArticle(transaction, articleId, categoryIdsToAdd);
+
+    return this.getCategoryIdsRelatedToArticle(transaction, articleId);
   }
 
   async delete(id: number) {

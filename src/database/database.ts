@@ -5,7 +5,7 @@ import { AddressesTable } from '../users/addressesTable';
 import { CategoriesTable } from '../categories/categoriesTable';
 import { CategoriesArticlesTable } from '../categories/categoriesArticlesTable';
 
-interface Tables {
+export interface Tables {
   articles: ArticlesTable;
   users: UsersTable;
   addresses: AddressesTable;
