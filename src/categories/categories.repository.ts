@@ -1,5 +1,5 @@
 import { Database } from '../database/database';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Category } from './category.model';
 import { CategoryDto } from './dto/category.dto';
 import CategoryWithArticles from './categoryWithArticles.model';
@@ -23,9 +23,11 @@ export class CategoriesRepository {
       .selectAll()
       .executeTakeFirst();
 
-    if (databaseResponse) {
-      return new Category(databaseResponse);
+    if (!databaseResponse) {
+      throw new NotFoundException();
     }
+
+    return new Category(databaseResponse);
   }
 
   async getWithArticles(categoryId: number) {
@@ -36,7 +38,7 @@ export class CategoriesRepository {
       .executeTakeFirst();
 
     if (!categoryResponse) {
-      return;
+      throw new NotFoundException();
     }
 
     const articlesResponse = await this.database
@@ -79,30 +81,32 @@ export class CategoriesRepository {
       .returningAll()
       .executeTakeFirst();
 
-    if (databaseResponse) {
-      return new Category(databaseResponse);
+    if (!databaseResponse) {
+      throw new NotFoundException();
     }
+    return new Category(databaseResponse);
   }
 
   async delete(id: number) {
-    try {
-      const databaseResponse = await this.database
-        .transaction()
-        .execute(async (transactionBuilder) => {
-          await transactionBuilder
-            .deleteFrom('categories_articles')
-            .where('category_id', '=', id)
-            .execute();
+    const databaseResponse = await this.database
+      .transaction()
+      .execute(async (transactionBuilder) => {
+        await transactionBuilder
+          .deleteFrom('categories_articles')
+          .where('category_id', '=', id)
+          .execute();
 
-          return await transactionBuilder
-            .deleteFrom('categories')
-            .where('id', '=', id)
-            .returningAll()
-            .executeTakeFirstOrThrow();
-        });
-      return new Category(databaseResponse);
-    } catch {
-      return null;
-    }
+        const deleteCategoryResponse = await transactionBuilder
+          .deleteFrom('categories')
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst();
+
+        if (!deleteCategoryResponse) {
+          throw new NotFoundException();
+        }
+        return deleteCategoryResponse;
+      });
+    return new Category(databaseResponse);
   }
 }
