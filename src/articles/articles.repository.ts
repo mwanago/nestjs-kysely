@@ -12,6 +12,7 @@ import { ArticleWithDetailsModel } from './articleWithDetails.model';
 import { isRecord } from '../utils/isRecord';
 import { PostgresErrorCode } from '../database/postgresErrorCode.enum';
 import { getDifferenceBetweenArrays } from '../utils/getDifferenceBetweenArrays';
+import { isDatabaseError } from '../types/databaseError';
 
 @Injectable()
 export class ArticlesRepository {
@@ -88,17 +89,28 @@ export class ArticlesRepository {
   }
 
   async create(data: ArticleDto, authorId: number) {
-    const databaseResponse = await this.database
-      .insertInto('articles')
-      .values({
-        title: data.title,
-        article_content: data.content,
-        author_id: authorId,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
-
-    return new Article(databaseResponse);
+    try {
+      const databaseResponse = await this.database
+        .insertInto('articles')
+        .values({
+          title: data.title,
+          article_content: data.content,
+          author_id: authorId,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+      return new Article(databaseResponse);
+    } catch (error) {
+      if (
+        isDatabaseError(error) &&
+        error.code === PostgresErrorCode.NotNullViolation
+      ) {
+        throw new BadRequestException(
+          `A null value can't be set for the ${error.column} column`,
+        );
+      }
+      throw error;
+    }
   }
 
   async createWithCategories(data: ArticleDto, authorId: number) {
