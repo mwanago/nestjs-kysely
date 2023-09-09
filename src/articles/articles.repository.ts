@@ -101,10 +101,15 @@ export class ArticlesRepository {
         .executeTakeFirstOrThrow();
       return new Article(databaseResponse);
     } catch (error) {
-      if (
-        isDatabaseError(error) &&
-        error.code === PostgresErrorCode.NotNullViolation
-      ) {
+      if (!isDatabaseError(error)) {
+        throw error;
+      }
+      if (error.code === PostgresErrorCode.CheckViolation) {
+        throw new BadRequestException(
+          'The length of the content needs to be greater than 0',
+        );
+      }
+      if (error.code === PostgresErrorCode.NotNullViolation) {
         throw new BadRequestException(
           `A null value can't be set for the ${error.column} column`,
         );
