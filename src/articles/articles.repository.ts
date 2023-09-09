@@ -153,10 +153,20 @@ export class ArticlesRepository {
         category_ids: data.categoryIds,
       });
     } catch (error) {
-      if (
-        isDatabaseError(error) &&
-        error.code === PostgresErrorCode.ForeignKeyViolation
-      ) {
+      if (!isDatabaseError(error)) {
+        throw error;
+      }
+      if (error.code === PostgresErrorCode.CheckViolation) {
+        throw new BadRequestException(
+          'The length of the content needs to be greater than 0',
+        );
+      }
+      if (error.code === PostgresErrorCode.NotNullViolation) {
+        throw new BadRequestException(
+          `A null value can't be set for the ${error.column} column`,
+        );
+      }
+      if (error.code === PostgresErrorCode.ForeignKeyViolation) {
         throw new BadRequestException('Category not found');
       }
       throw error;
