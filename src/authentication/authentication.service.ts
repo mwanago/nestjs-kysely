@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { SignUpDto } from './dto/signUp.dto';
 import { TokenPayload } from './tokenPayload.interface';
-import { UserAlreadyExistsException } from '../users/exceptions/userAlreadyExists.exception';
 
 @Injectable()
 export class AuthenticationService {
@@ -17,20 +16,10 @@ export class AuthenticationService {
 
   public async signUp(signUpData: SignUpDto) {
     const hashedPassword = await bcrypt.hash(signUpData.password, 10);
-    try {
-      return await this.usersService.create({
-        ...signUpData,
-        password: hashedPassword,
-      });
-    } catch (error: unknown) {
-      if (error instanceof UserAlreadyExistsException) {
-        throw new HttpException(
-          'User with that email already exists',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw error;
-    }
+    return await this.usersService.create({
+      ...signUpData,
+      password: hashedPassword,
+    });
   }
 
   public getCookieWithJwtToken(userId: number) {
