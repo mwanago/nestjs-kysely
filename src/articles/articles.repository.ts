@@ -114,38 +114,48 @@ export class ArticlesRepository {
   }
 
   async createWithCategories(data: ArticleDto, authorId: number) {
-    const databaseResponse = await this.database
-      .with('created_article', (database) => {
-        return database
-          .insertInto('articles')
-          .values({
-            title: data.title,
-            article_content: data.content,
-            author_id: authorId,
-          })
-          .returningAll();
-      })
-      .with('created_relationships', (database) => {
-        return database
-          .insertInto('categories_articles')
-          .columns(['article_id', 'category_id'])
-          .expression((expressionBuilder) => {
-            return expressionBuilder
-              .selectFrom('created_article')
-              .select([
-                'created_article.id as article_id',
-                sql`unnest(${data.categoryIds}::int[])`.as('category_id'),
-              ]);
-          });
-      })
-      .selectFrom('created_article')
-      .select(['id', 'title', 'article_content', 'author_id'])
-      .executeTakeFirstOrThrow();
+    try {
+      const databaseResponse = await this.database
+        .with('created_article', (database) => {
+          return database
+            .insertInto('articles')
+            .values({
+              title: data.title,
+              article_content: data.content,
+              author_id: authorId,
+            })
+            .returningAll();
+        })
+        .with('created_relationships', (database) => {
+          return database
+            .insertInto('categories_articles')
+            .columns(['article_id', 'category_id'])
+            .expression((expressionBuilder) => {
+              return expressionBuilder
+                .selectFrom('created_article')
+                .select([
+                  'created_article.id as article_id',
+                  sql`unnest(${data.categoryIds}::int[])`.as('category_id'),
+                ]);
+            });
+        })
+        .selectFrom('created_article')
+        .select(['id', 'title', 'article_content', 'author_id'])
+        .executeTakeFirstOrThrow();
 
-    return new ArticleWithCategoryIds({
-      ...databaseResponse,
-      category_ids: data.categoryIds,
-    });
+      return new ArticleWithCategoryIds({
+        ...databaseResponse,
+        category_ids: data.categoryIds,
+      });
+    } catch (error) {
+      if (
+        isDatabaseError(error) &&
+        error.code === PostgresErrorCode.ForeignKeyViolation
+      ) {
+        throw new BadRequestException('Category not found');
+      }
+      throw error;
+    }
   }
 
   async update(id: number, data: ArticleDto) {
@@ -205,7 +215,7 @@ export class ArticlesRepository {
         .execute();
     } catch (error) {
       if (
-        isRecord(error) &&
+        isDatabaseError(error) &&
         error.code === PostgresErrorCode.ForeignKeyViolation
       ) {
         throw new BadRequestException('Category not found');
