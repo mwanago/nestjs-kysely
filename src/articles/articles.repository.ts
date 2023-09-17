@@ -17,12 +17,13 @@ import { isDatabaseError } from '../types/databaseError';
 export class ArticlesRepository {
   constructor(private readonly database: Database) {}
 
-  async getAll(offset: number, limit: number | null) {
+  async getAll(offset: number, limit: number | null, idsToSkip: number) {
     const { data, count } = await this.database
       .transaction()
       .execute(async (transaction) => {
         let articlesQuery = transaction
           .selectFrom('articles')
+          .where('id', '>', idsToSkip)
           .orderBy('id')
           .offset(offset)
           .selectAll();
@@ -106,13 +107,19 @@ export class ArticlesRepository {
     }
   }
 
-  async getByAuthorId(authorId: number, offset: number, limit: number | null) {
+  async getByAuthorId(
+    authorId: number,
+    offset: number,
+    limit: number | null,
+    idsToSkip: number,
+  ) {
     const { data, count } = await this.database
       .transaction()
       .execute(async (transaction) => {
         let articlesQuery = transaction
           .selectFrom('articles')
           .where('author_id', '=', authorId)
+          .where('id', '>', idsToSkip)
           .orderBy('id')
           .offset(offset)
           .selectAll();
