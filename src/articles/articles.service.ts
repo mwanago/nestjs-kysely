@@ -6,11 +6,11 @@ import { ArticlesRepository } from './articles.repository';
 export class ArticlesService {
   constructor(private readonly articlesRepository: ArticlesRepository) {}
 
-  getAll(authorId?: number) {
+  getAll(authorId: number | null, offset: number, limit: number | null) {
     if (authorId) {
-      return this.articlesRepository.getByAuthorId(authorId);
+      return this.articlesRepository.getByAuthorId(authorId, offset, limit);
     }
-    return this.articlesRepository.getAll();
+    return this.articlesRepository.getAll(offset, limit);
   }
 
   async getById(id: number) {

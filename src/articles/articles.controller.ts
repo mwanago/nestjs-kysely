@@ -18,6 +18,7 @@ import { ArticlesService } from './articles.service';
 import { JwtAuthenticationGuard } from '../authentication/jwt-authentication.guard';
 import { RequestWithUser } from '../authentication/requestWithUser.interface';
 import { GetArticlesByAuthorQuery } from './getArticlesByAuthorQuery';
+import PaginationParams from './dto/paginationParams.dto';
 
 @Controller('articles')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -25,8 +26,11 @@ export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
   @Get()
-  getAll(@Query() { authorId }: GetArticlesByAuthorQuery) {
-    return this.articlesService.getAll(authorId);
+  getAll(
+    @Query() { authorId }: GetArticlesByAuthorQuery,
+    @Query() { offset, limit }: PaginationParams,
+  ) {
+    return this.articlesService.getAll(authorId, offset, limit);
   }
 
   @Get(':id')

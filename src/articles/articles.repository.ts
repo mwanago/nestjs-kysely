@@ -9,7 +9,6 @@ import { ArticleDto } from './dto/article.dto';
 import { sql, Transaction } from 'kysely';
 import { ArticleWithCategoryIds } from './articleWithCategoryIds.model';
 import { ArticleWithDetailsModel } from './articleWithDetails.model';
-import { isRecord } from '../utils/isRecord';
 import { PostgresErrorCode } from '../database/postgresErrorCode.enum';
 import { getDifferenceBetweenArrays } from '../utils/getDifferenceBetweenArrays';
 import { isDatabaseError } from '../types/databaseError';
@@ -18,12 +17,41 @@ import { isDatabaseError } from '../types/databaseError';
 export class ArticlesRepository {
   constructor(private readonly database: Database) {}
 
-  async getAll() {
-    const databaseResponse = await this.database
-      .selectFrom('articles')
-      .selectAll()
-      .execute();
-    return databaseResponse.map((articleData) => new Article(articleData));
+  async getAll(offset: number, limit: number | null) {
+    const { data, count } = await this.database
+      .transaction()
+      .execute(async (transaction) => {
+        let articlesQuery = transaction
+          .selectFrom('articles')
+          .orderBy('id')
+          .offset(offset)
+          .selectAll();
+
+        if (limit !== null) {
+          articlesQuery = articlesQuery.limit(limit);
+        }
+
+        const articlesResponse = await articlesQuery.execute();
+
+        const { count } = await transaction
+          .selectFrom('articles')
+          .select((expressionBuilder) => {
+            return expressionBuilder.fn.countAll().as('count');
+          })
+          .executeTakeFirstOrThrow();
+
+        return {
+          data: articlesResponse,
+          count,
+        };
+      });
+
+    const items = data.map((articleData) => new Article(articleData));
+
+    return {
+      items,
+      count,
+    };
   }
 
   async getById(id: number) {
@@ -78,14 +106,43 @@ export class ArticlesRepository {
     }
   }
 
-  async getByAuthorId(authorId: number) {
-    const databaseResponse = await this.database
-      .selectFrom('articles')
-      .where('author_id', '=', authorId)
-      .selectAll()
-      .execute();
+  async getByAuthorId(authorId: number, offset: number, limit: number | null) {
+    const { data, count } = await this.database
+      .transaction()
+      .execute(async (transaction) => {
+        let articlesQuery = transaction
+          .selectFrom('articles')
+          .where('author_id', '=', authorId)
+          .orderBy('id')
+          .offset(offset)
+          .selectAll();
 
-    return databaseResponse.map((articleData) => new Article(articleData));
+        if (limit !== null) {
+          articlesQuery = articlesQuery.limit(limit);
+        }
+
+        const articlesResponse = await articlesQuery.execute();
+
+        const { count } = await transaction
+          .selectFrom('articles')
+          .where('author_id', '=', authorId)
+          .select((expressionBuilder) => {
+            return expressionBuilder.fn.countAll().as('count');
+          })
+          .executeTakeFirstOrThrow();
+
+        return {
+          data: articlesResponse,
+          count,
+        };
+      });
+
+    const items = data.map((articleData) => new Article(articleData));
+
+    return {
+      items,
+      count,
+    };
   }
 
   async create(data: ArticleDto, authorId: number) {

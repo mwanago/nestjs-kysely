@@ -6,5 +6,5 @@ export class GetArticlesByAuthorQuery {
   @Min(1)
   @IsOptional()
   @Transform(({ value }) => Number(value))
-  authorId?: number;
+  authorId: number | null = null;
 }
