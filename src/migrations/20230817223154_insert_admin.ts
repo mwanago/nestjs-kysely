@@ -23,7 +23,7 @@ export const up: Migration['up'] = async (database) => {
     .execute();
 };
 
-export const down: Migration['up'] = async (database) => {
+export const down: Migration['down'] = async (database) => {
   const email = configService.get('ADMIN_EMAIL');
 
   await database.deleteFrom('users').where('email', '=', email).execute();
