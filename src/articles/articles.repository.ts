@@ -75,7 +75,7 @@ export class ArticlesRepository {
       .leftJoin('addresses', 'addresses.id', 'users.address_id')
       .select([
         'articles.id as id',
-        'articles.article_content as article_content',
+        'articles.paragraphs as paragraphs',
         'articles.title as title',
         'articles.author_id as author_id',
         'users.id as user_id',
@@ -158,7 +158,7 @@ export class ArticlesRepository {
         .insertInto('articles')
         .values({
           title: data.title,
-          article_content: data.content,
+          paragraphs: data.paragraphs,
           author_id: authorId,
         })
         .returningAll()
@@ -190,7 +190,7 @@ export class ArticlesRepository {
             .insertInto('articles')
             .values({
               title: data.title,
-              article_content: data.content,
+              paragraphs: data.paragraphs,
               author_id: authorId,
             })
             .returningAll();
@@ -209,7 +209,7 @@ export class ArticlesRepository {
             });
         })
         .selectFrom('created_article')
-        .select(['id', 'title', 'article_content', 'author_id'])
+        .select(['id', 'title', 'paragraphs', 'author_id'])
         .executeTakeFirstOrThrow();
 
       return new ArticleWithCategoryIds({
@@ -245,7 +245,7 @@ export class ArticlesRepository {
           .updateTable('articles')
           .set({
             title: data.title,
-            article_content: data.content,
+            paragraphs: data.paragraphs,
           })
           .where('id', '=', id)
           .returningAll()

@@ -48,7 +48,7 @@ export class CategoriesRepository {
       .select([
         'articles.id as id',
         'articles.title as title',
-        'articles.article_content as article_content',
+        'articles.paragraphs as paragraphs',
         'articles.author_id as author_id',
       ])
       .execute();

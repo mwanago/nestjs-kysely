@@ -1,19 +1,19 @@
 export interface ArticleModelData {
   id: number;
   title: string;
-  article_content: string;
+  paragraphs: string[];
   author_id: number;
 }
 
 export class Article {
   id: number;
   title: string;
-  content: string;
+  paragraphs: string[];
   authorId: number;
-  constructor({ id, title, article_content, author_id }: ArticleModelData) {
+  constructor({ id, title, paragraphs, author_id }: ArticleModelData) {
     this.id = id;
     this.title = title;
-    this.content = article_content;
+    this.paragraphs = paragraphs;
     this.authorId = author_id;
   }
 }

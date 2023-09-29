@@ -5,9 +5,9 @@ export class ArticleDto {
   @IsNotEmpty()
   title: string;
 
-  @IsString()
-  @IsNotEmpty()
-  content: string;
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  paragraphs: string[];
 
   @IsOptional()
   @IsNumber({}, { each: true })
