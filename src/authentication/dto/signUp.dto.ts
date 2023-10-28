@@ -23,5 +23,5 @@ export class SignUpDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => AddressDto)
-  address: AddressDto;
+  address?: AddressDto;
 }
