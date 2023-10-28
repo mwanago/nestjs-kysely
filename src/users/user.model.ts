@@ -1,7 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { Address } from './address.model';
 
-interface UserModelData {
+export interface UserModelData {
   id: number;
   email: string;
   name: string;
