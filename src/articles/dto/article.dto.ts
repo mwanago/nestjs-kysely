@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsISO8601,
+} from 'class-validator';
 
 export class ArticleDto {
   @IsString()
@@ -12,4 +18,10 @@ export class ArticleDto {
   @IsOptional()
   @IsNumber({}, { each: true })
   categoryIds?: number[];
+
+  @IsISO8601({
+    strict: true,
+  })
+  @IsOptional()
+  scheduledDate?: string;
 }

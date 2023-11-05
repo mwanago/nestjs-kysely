@@ -78,6 +78,7 @@ export class ArticlesRepository {
         'articles.paragraphs as paragraphs',
         'articles.title as title',
         'articles.author_id as author_id',
+        'articles.scheduled_date as scheduled_date',
         'users.id as user_id',
         'users.email as user_email',
         'users.name as user_name',
@@ -160,6 +161,7 @@ export class ArticlesRepository {
           title: data.title,
           paragraphs: data.paragraphs,
           author_id: authorId,
+          scheduled_date: data.scheduledDate,
         })
         .returningAll()
         .executeTakeFirstOrThrow();
@@ -185,32 +187,35 @@ export class ArticlesRepository {
   async createWithCategories(data: ArticleDto, authorId: number) {
     try {
       const databaseResponse = await this.database
-        .with('created_article', (database) => {
-          return database
+        .transaction()
+        .execute(async (transaction) => {
+          const createdArticleResponse = await transaction
             .insertInto('articles')
             .values({
               title: data.title,
               paragraphs: data.paragraphs,
               author_id: authorId,
+              scheduled_date: data.scheduledDate,
             })
-            .returningAll();
-        })
-        .with('created_relationships', (database) => {
-          return database
+            .returning(['id', 'title', 'paragraphs', 'author_id'])
+            .executeTakeFirstOrThrow();
+
+          if (!data.categoryIds) {
+            return createdArticleResponse;
+          }
+
+          await transaction
             .insertInto('categories_articles')
-            .columns(['article_id', 'category_id'])
-            .expression((expressionBuilder) => {
-              return expressionBuilder
-                .selectFrom('created_article')
-                .select([
-                  'created_article.id as article_id',
-                  sql`unnest(${data.categoryIds}::int[])`.as('category_id'),
-                ]);
-            });
-        })
-        .selectFrom('created_article')
-        .select(['id', 'title', 'paragraphs', 'author_id'])
-        .executeTakeFirstOrThrow();
+            .values(
+              data.categoryIds.map((categoryId) => ({
+                article_id: createdArticleResponse.id,
+                category_id: categoryId,
+              })),
+            )
+            .execute();
+
+          return createdArticleResponse;
+        });
 
       return new ArticleWithCategoryIds({
         ...databaseResponse,
@@ -246,6 +251,7 @@ export class ArticlesRepository {
           .set({
             title: data.title,
             paragraphs: data.paragraphs,
+            scheduled_date: data.scheduledDate,
           })
           .where('id', '=', id)
           .returningAll()

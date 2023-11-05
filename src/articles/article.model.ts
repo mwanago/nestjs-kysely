@@ -3,6 +3,7 @@ export interface ArticleModelData {
   title: string;
   paragraphs: string[];
   author_id: number;
+  scheduled_date?: Date;
 }
 
 export class Article {
@@ -10,10 +11,20 @@ export class Article {
   title: string;
   paragraphs: string[];
   authorId: number;
-  constructor({ id, title, paragraphs, author_id }: ArticleModelData) {
+  scheduledDate?: Date;
+  constructor({
+    id,
+    title,
+    paragraphs,
+    author_id,
+    scheduled_date,
+  }: ArticleModelData) {
     this.id = id;
     this.title = title;
     this.paragraphs = paragraphs;
     this.authorId = author_id;
+    if (scheduled_date) {
+      this.scheduledDate = scheduled_date;
+    }
   }
 }
