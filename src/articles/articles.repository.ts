@@ -19,9 +19,7 @@ export class ArticlesRepository {
 
   async getArticlesFromYesterday() {
     const databaseResponse = await this.database
-      .selectFrom('articles')
-      .where('created_at', '<', sql`NOW() - INTERVAL '1 DAY'`)
-      .where('created_at', '>', sql`NOW() - INTERVAL '2 DAYS'`)
+      .selectFrom('articles_from_yesterday')
       .selectAll()
       .execute();
 

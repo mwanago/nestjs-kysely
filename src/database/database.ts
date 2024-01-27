@@ -8,6 +8,7 @@ import { CommentsTable } from '../comments/commentsTable';
 
 export interface Tables {
   articles: ArticlesTable;
+  articles_from_yesterday: ArticlesTable;
   users: UsersTable;
   addresses: AddressesTable;
   categories: CategoriesTable;
