@@ -6,5 +6,5 @@ export interface ArticlesTable {
   paragraphs: string[];
   author_id: number;
   scheduled_date?: ColumnType<Date, string | Date, string | Date>;
-  created_at: Date;
+  created_at: ColumnType<Date, string | Date | undefined, string | Date>;
 }

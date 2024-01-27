@@ -17,6 +17,17 @@ import { isDatabaseError } from '../types/databaseError';
 export class ArticlesRepository {
   constructor(private readonly database: Database) {}
 
+  async getArticlesFromYesterday() {
+    const databaseResponse = await this.database
+      .selectFrom('articles')
+      .where('created_at', '<', sql`TIMESTAMP 'today'`)
+      .where('created_at', '>', sql`TIMESTAMP 'yesterday'`)
+      .selectAll()
+      .execute();
+
+    return databaseResponse.map((articleData) => new Article(articleData));
+  }
+
   async getAll(offset: number, limit: number | null, idsToSkip: number) {
     const { data, count } = await this.database
       .transaction()
