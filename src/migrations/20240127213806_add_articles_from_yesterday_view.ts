@@ -10,6 +10,7 @@ export const up: Migration['up'] = async (database) => {
         .where('created_at', '<', sql`NOW() - INTERVAL '1 DAY'`)
         .where('created_at', '>', sql`NOW() - INTERVAL '2 DAYS'`),
     )
+    .materialized()
     .execute();
 };
 
